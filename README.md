@@ -1,4 +1,7 @@
-# 🌐 Splat Spatial Engine
+# Splat Spatial Engine | 3D Gaussian Splatting Viewer with Binaural Spatial Audio
+
+Splat Spatial Engine is a browser-based 3D visualization project that combines Gaussian-splat scene rendering with interactive spatial audio. The README describes TypeScript, Three.js, WebGL/WebGPU rendering paths, WGSL compute shaders, and Web Audio API components for binaural HRTF sound. It is aimed at developers exploring immersive 3D graphics, radiance-field visualization, and spatial-audio experiences on the web.
+
 
 <div align="center">
 
