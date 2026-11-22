@@ -53,7 +53,7 @@ describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
       'property float x',
       'end_header',
       ''
-    ].join('\\n');
+    ].join('\n');
     const headerBytes = new TextEncoder().encode(header);
     const buffer = new ArrayBuffer(headerBytes.byteLength + 4);
     new Uint8Array(buffer).set(headerBytes);
@@ -68,7 +68,7 @@ describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
       'property float x',
       'end_header',
       ''
-    ].join('\\n');
+    ].join('\n');
     const buffer = new TextEncoder().encode(header).buffer;
     assert.throws(() => PlyParser.parsePly(buffer), /expected binary_little_endian 1.0/);
   });
