@@ -5,6 +5,57 @@ import { RadixSort } from '../src/splat/RadixSort.js';
 import { SplatPointCloud } from '../src/splat/types.js';
 
 describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
+
+  it('should decode signed and unsigned integer PLY scalar properties', () => {
+    const header = [
+      'ply',
+      'format binary_little_endian 1.0',
+      'element vertex 1',
+      'property short x',
+      'property uint y',
+      'property float32 z',
+      'property char red',
+      'property ushort green',
+      'property uint8 blue',
+      'end_header',
+      ''
+    ].join('\n');
+    const headerBytes = new TextEncoder().encode(header);
+    const buffer = new ArrayBuffer(headerBytes.byteLength + 2 + 4 + 4 + 1 + 2 + 1);
+    new Uint8Array(buffer).set(headerBytes);
+
+    const view = new DataView(buffer, headerBytes.byteLength);
+    let offset = 0;
+    view.setInt16(offset, -2, true); offset += 2;
+    view.setUint32(offset, 4000000000, true); offset += 4;
+    view.setFloat32(offset, 3.5, true); offset += 4;
+    view.setInt8(offset, 255); offset += 1;
+    view.setUint16(offset, 128, true); offset += 2;
+    view.setUint8(offset, 64);
+
+    const cloud = PlyParser.parsePly(buffer);
+
+    assert.strictEqual(cloud.positions[0], -2);
+    assert.strictEqual(cloud.positions[1], 4000000000);
+    assert.strictEqual(cloud.positions[2], 3.5);
+    assert.ok(Math.abs((cloud.colors[0] ?? 0) - 1) < 1e-6);
+    assert.ok(Math.abs((cloud.colors[1] ?? 0) - 128 / 255) < 1e-6);
+    assert.ok(Math.abs((cloud.colors[2] ?? 0) - 64 / 255) < 1e-6);
+  });
+
+  it('should reject unsupported PLY scalar property types', () => {
+    const header = [
+      'ply',
+      'format binary_little_endian 1.0',
+      'element vertex 1',
+      'property list x',
+      'end_header',
+      ''
+    ].join('\n');
+    const buffer = new TextEncoder().encode(header).buffer;
+
+    assert.throws(() => PlyParser.parsePly(buffer), /Unsupported PLY property type: list/);
+  });
   it('should serialize and parse binary PLY 3D Gaussian Splat point clouds correctly', () => {
     const originalCloud: SplatPointCloud = {
       count: 3,
