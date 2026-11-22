@@ -94,6 +94,11 @@ export class PlyParser {
     const header = headerText.substring(0, endHeaderIndex + 'end_header\n'.length);
     const lines = header.split(/\r?\n/);
 
+    const formatLine = lines.find((line) => line.trim().startsWith('format '))?.trim();
+    if (formatLine !== 'format binary_little_endian 1.0') {
+      throw new Error('Unsupported PLY format: expected binary_little_endian 1.0');
+    }
+
     if (lines[0]?.trim() !== 'ply') {
       throw new Error('Invalid PLY file: missing "ply" magic header');
     }
@@ -128,7 +133,7 @@ export class PlyParser {
       }
     }
 
-    if (vertexCount <= 0) {
+    if (!Number.isSafeInteger(vertexCount) || vertexCount <= 0) {
       throw new Error('Invalid PLY file: vertex count is 0 or unparsed');
     }
 
@@ -136,6 +141,11 @@ export class PlyParser {
     let byteStride = 0;
     for (const prop of propertyTypes) {
       byteStride += prop.byteSize;
+    }
+    const payloadBytes = vertexCount * byteStride;
+    if (byteStride <= 0 || !Number.isSafeInteger(payloadBytes)
+        || payloadBytes > buffer.byteLength - headerByteLength) {
+      throw new Error('Invalid PLY file: vertex data is truncated or has an invalid stride');
     }
 
     const positions = new Float32Array(vertexCount * 3);
