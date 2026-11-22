@@ -114,15 +114,15 @@ export class PlyParser {
         const type = parts[1] ?? 'float';
         const name = parts[2] ?? '';
 
-        let byteSize = 4;
-        if (type === 'float' || type === 'float32' || type === 'int' || type === 'uint') {
-          byteSize = 4;
-        } else if (type === 'double' || type === 'float64') {
-          byteSize = 8;
-        } else if (type === 'uchar' || type === 'uint8' || type === 'char' || type === 'int8') {
-          byteSize = 1;
-        } else if (type === 'short' || type === 'int16' || type === 'ushort' || type === 'uint16') {
-          byteSize = 2;
+        const byteSizes: Record<string, number> = {
+          float: 4, float32: 4, int: 4, int32: 4, uint: 4, uint32: 4,
+          double: 8, float64: 8,
+          uchar: 1, uint8: 1, char: 1, int8: 1,
+          short: 2, int16: 2, ushort: 2, uint16: 2
+        };
+        const byteSize = byteSizes[type];
+        if (byteSize === undefined) {
+          throw new Error(`Unsupported PLY property type: ${type}`);
         }
         propertyTypes.push({ name, type, byteSize });
       }
@@ -172,14 +172,39 @@ export class PlyParser {
 
       for (const prop of propertyTypes) {
         let val = 0;
-        if (prop.type === 'float' || prop.type === 'float32') {
-          val = view.getFloat32(offset, true);
-        } else if (prop.type === 'uchar' || prop.type === 'uint8') {
-          val = view.getUint8(offset);
-        } else if (prop.type === 'double' || prop.type === 'float64') {
-          val = view.getFloat64(offset, true);
-        } else if (prop.type === 'int' || prop.type === 'int32') {
-          val = view.getInt32(offset, true);
+        switch (prop.type) {
+          case 'float':
+          case 'float32':
+            val = view.getFloat32(offset, true);
+            break;
+          case 'double':
+          case 'float64':
+            val = view.getFloat64(offset, true);
+            break;
+          case 'char':
+          case 'int8':
+            val = view.getInt8(offset);
+            break;
+          case 'uchar':
+          case 'uint8':
+            val = view.getUint8(offset);
+            break;
+          case 'short':
+          case 'int16':
+            val = view.getInt16(offset, true);
+            break;
+          case 'ushort':
+          case 'uint16':
+            val = view.getUint16(offset, true);
+            break;
+          case 'int':
+          case 'int32':
+            val = view.getInt32(offset, true);
+            break;
+          case 'uint':
+          case 'uint32':
+            val = view.getUint32(offset, true);
+            break;
         }
 
         switch (prop.name) {
