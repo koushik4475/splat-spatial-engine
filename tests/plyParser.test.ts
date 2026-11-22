@@ -14,14 +14,15 @@ describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
       'property short x',
       'property uint y',
       'property float32 z',
-      'property char red',
+      'property char reserved',
+      'property uchar red',
       'property ushort green',
       'property uint8 blue',
       'end_header',
       ''
     ].join('\n');
     const headerBytes = new TextEncoder().encode(header);
-    const buffer = new ArrayBuffer(headerBytes.byteLength + 2 + 4 + 4 + 1 + 2 + 1);
+    const buffer = new ArrayBuffer(headerBytes.byteLength + 2 + 4 + 4 + 1 + 1 + 2 + 1);
     new Uint8Array(buffer).set(headerBytes);
 
     const view = new DataView(buffer, headerBytes.byteLength);
@@ -29,7 +30,8 @@ describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
     view.setInt16(offset, -2, true); offset += 2;
     view.setUint32(offset, 4000000000, true); offset += 4;
     view.setFloat32(offset, 3.5, true); offset += 4;
-    view.setInt8(offset, 255); offset += 1;
+    view.setInt8(offset, -2); offset += 1;
+    view.setUint8(offset, 255); offset += 1;
     view.setUint16(offset, 128, true); offset += 2;
     view.setUint8(offset, 64);
 
