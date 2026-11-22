@@ -45,6 +45,34 @@ describe('Gaussian Splatting PLY Parser and Radix Sort Tests', () => {
     assert.ok(Math.abs((cloud.colors[2] ?? 0) - 64 / 255) < 1e-6);
   });
 
+  it('should reject truncated binary vertex payloads with a clear error', () => {
+    const header = [
+      'ply',
+      'format binary_little_endian 1.0',
+      'element vertex 2',
+      'property float x',
+      'end_header',
+      ''
+    ].join('\\n');
+    const headerBytes = new TextEncoder().encode(header);
+    const buffer = new ArrayBuffer(headerBytes.byteLength + 4);
+    new Uint8Array(buffer).set(headerBytes);
+    assert.throws(() => PlyParser.parsePly(buffer), /vertex data is truncated/);
+  });
+
+  it('should reject non-binary-little-endian PLY formats', () => {
+    const header = [
+      'ply',
+      'format ascii 1.0',
+      'element vertex 1',
+      'property float x',
+      'end_header',
+      ''
+    ].join('\\n');
+    const buffer = new TextEncoder().encode(header).buffer;
+    assert.throws(() => PlyParser.parsePly(buffer), /expected binary_little_endian 1.0/);
+  });
+
   it('should reject unsupported PLY scalar property types', () => {
     const header = [
       'ply',
